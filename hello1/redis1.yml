@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis1
+  labels:
+    app: redis1
+spec:
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+  type: ClusterIP
+  selector:
+    app: redis1
+---
+apiVersion: v1
+data:
+  redis-password: ZjdYbVF1Y3U2S3BjdzJqaFVOeGJLeVdFam50ZUpKa1A=
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: redis1-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis1
+spec:
+  selector:
+    matchLabels:
+      app: redis1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis1
+    spec:
+      containers:
+      - name: redis
+        image: redis:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+        command: ["/usr/local/bin/redis-server","--requirepass","$(REDIS_PASSWORD)"]
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis1-secret
+              key: redis-password
+        # data volume where redis writes data
+        volumeMounts:
+        - name: data
+          mountPath: /data
+          readOnly: false
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: redis1
+---
+# data volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis1
+  labels:
+    app: redis1
+spec:
+  storageClassName: default
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

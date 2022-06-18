@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+data:
+  redis-password: ZjdYbVF1Y3U2S3BjdzJqaFVOeGJLeVdFam50ZUpKa1A=
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: hello2-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: hello2
+  name: hello2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello2
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: hello2
+    spec:
+      containers:
+      - image: thanaphat1991/line-hello-2
+        name: line-hello-2
+        env:
+        - name: GO_ENV
+          value: production
+        - name: REDIS_HOST
+          value: "redis2.hello2.svc.cluster.local:6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hello2-secret
+              key: redis-password

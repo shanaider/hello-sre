@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+data:
+  redis-password: ZjdYbVF1Y3U2S3BjdzJqaFVOeGJLeVdFam50ZUpKa1A=
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: hello1-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: hello1
+  name: hello1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: hello1
+    spec:
+      containers:
+      - image: thanaphat1991/line-hello-1
+        name: line-hello-1
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: port
+          value: "6379"
+        - name: host
+          value: "redis1.hello1.svc.cluster.local"
+        - name: password
+          valueFrom:
+            secretKeyRef:
+              name: hello1-secret
+              key: redis-password
